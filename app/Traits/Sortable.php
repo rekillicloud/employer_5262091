@@ -6,16 +6,39 @@ use Illuminate\Database\Eloquent\Builder;
 
 trait Sortable
 {
+    protected static array $allowedSortDirections = ['asc', 'desc'];
+
     public function scopeSort(Builder $query, array $sort): Builder
     {
         foreach ($sort as $column => $direction) {
-            $direction = in_array(strtolower($direction), ['asc', 'desc'])
-                ? strtolower($direction)
-                : 'asc';
+            $column = $this->validateSortColumn($column);
+            $direction = strtolower($direction);
 
-            $query->orderBy($column, $direction);
+            if (!in_array($direction, static::$allowedSortDirections)) {
+                $direction = 'asc';
+            }
+
+            $query->orderBy("{$this->getTable()}.{$column}", $direction);
         }
 
         return $query;
+    }
+
+    protected function validateSortColumn(string $column): string
+    {
+        $allowed = $this->getAllowedSortColumns();
+
+        if (!in_array($column, $allowed)) {
+            throw new \InvalidArgumentException("Сортировка по столбцу '{$column}' не разрешена для модели " . static::class);
+        }
+
+        return $column;
+    }
+
+    protected function getAllowedSortColumns(): array
+    {
+        return property_exists($this, 'sortableColumns')
+            ? $this->sortableColumns
+            : [];
     }
 }

@@ -11,7 +11,7 @@ trait Filterable
         foreach ($filters as $field => $value) {
             if (is_array($value) && isset($value['type'])) {
                 $type = $value['type'];
-                $column = $value['column'] ?? $field;
+                $column = $this->validateColumn($value['column'] ?? $field);
 
                 match ($type) {
                     'date_range' => $this->applyDateRangeFilter($query, $column, $value['from'] ?? null, $value['to'] ?? null),
@@ -19,20 +19,40 @@ trait Filterable
                     'in' => $this->applyInFilter($query, $column, $value['values'] ?? []),
                     'like' => $this->applyLikeFilter($query, $column, $value['value'] ?? ''),
                     'boolean' => $this->applyBooleanFilter($query, $column, $value['value'] ?? $value),
-                    default => $query->where($field, $value['value'] ?? $value),
+                    default => throw new \InvalidArgumentException("Неизвестный тип фильтрации: {$type}"),
                 };
             } elseif (is_array($value)) {
-                $query->where($field, $value);
+                $column = $this->validateColumn($field);
+                $query->where($column, $value);
             } else {
                 if (method_exists($this, 'scopeFilterBy' . ucfirst($field))) {
                     $query->{$this->filterMethodName('FilterBy' . ucfirst($field))}($value);
                 } else {
-                    $query->where($field, $value);
+                    $column = $this->validateColumn($field);
+                    $query->where($column, $value);
                 }
             }
         }
 
         return $query;
+    }
+
+    protected function validateColumn(string $column): string
+    {
+        $allowed = $this->getAllowedFilterColumns();
+
+        if (!in_array($column, $allowed)) {
+            throw new \InvalidArgumentException("Фильтр по столбцу '{$column}' не разрешён для модели " . static::class);
+        }
+
+        return "{$this->getTable()}.{$column}";
+    }
+
+    protected function getAllowedFilterColumns(): array
+    {
+        return property_exists($this, 'filterableColumns')
+            ? $this->filterableColumns
+            : [];
     }
 
     protected function applyDateRangeFilter(Builder $query, string $column, ?string $from, ?string $to): Builder

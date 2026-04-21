@@ -10,10 +10,13 @@ use App\Traits\Sortable;
 class Product extends Model
 {
     use Filterable,
-        Sortable, 
+        Sortable,
         HasFactory;
 
     protected $fillable = ['name', 'price', 'category_id', 'in_stock', 'rating'];
+
+    protected array $filterableColumns = ['name', 'price', 'category_id', 'in_stock', 'rating', 'created_at'];
+    protected array $sortableColumns = ['name', 'price', 'rating', 'created_at'];
 
     public function category()
     {
