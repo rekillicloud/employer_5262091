@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Filterable;
+use App\Traits\Sortable;
 
 class Product extends Model
 {
-    use Filterable;
+    use Filterable, Sortable;
 
     protected $fillable = ['name', 'price', 'category_id', 'in_stock', 'rating'];
 
