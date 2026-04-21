@@ -6,9 +6,16 @@ use App\Http\Requests\ProductFilterRequest;
 
 class ProductFilterDTO
 {
+    protected static array $sortMap = [
+        'price_asc' => ['price', 'asc'],
+        'price_desc' => ['price', 'desc'],
+        'rating_desc' => ['rating', 'desc'],
+        'newest' => ['created_at', 'desc'],
+    ];
+
     public function __construct(
         public readonly array $filters,
-        public readonly ?string $sort,
+        public readonly array $sort,
     ) {}
 
     public static function fromRequest(ProductFilterRequest $request): self
@@ -42,9 +49,20 @@ class ProductFilterDTO
             $filters['rating'] = ['type' => 'between', 'column' => 'rating', 'min' => $request->rating_from];
         }
 
+        $sort = [];
+        if ($request->filled('sort')) {
+            $sorts = is_array($request->sort) ? $request->sort : [$request->sort];
+            foreach ($sorts as $sortKey) {
+                if (isset(self::$sortMap[$sortKey])) {
+                    [$column, $direction] = self::$sortMap[$sortKey];
+                    $sort[$column] = $direction;
+                }
+            }
+        }
+
         return new self(
             filters: $filters,
-            sort: $request->sort,
+            sort: $sort,
         );
     }
 }
