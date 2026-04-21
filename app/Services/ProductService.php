@@ -20,6 +20,6 @@ class ProductService
             $query->sort($dto->sort);
         }
 
-        return $query->paginate(15)->withQueryString();
+        return $query->paginate(15)->appends($dto->queryString);
     }
 }

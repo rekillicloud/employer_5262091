@@ -16,6 +16,7 @@ class ProductFilterDTO
     public function __construct(
         public readonly array $filters,
         public readonly array $sort,
+        public readonly array $queryString,
     ) {}
 
     public static function fromRequest(ProductFilterRequest $request): self
@@ -23,15 +24,15 @@ class ProductFilterDTO
         $filters = [];
 
         if ($request->filled('q')) {
-            $filters['q'] = ['type' => 'like', 'value' => $request->q];
+            $filters['q'] = ['type' => 'like', 'column' => 'name', 'value' => $request->q];
         }
 
-        if ($request->filled('price_from') || $request->filled('price_to')) {
+        if ($request->has('price_from') || $request->has('price_to')) {
             $between = [];
-            if ($request->filled('price_from')) {
+            if ($request->input('price_from') !== null && $request->input('price_from') !== '') {
                 $between['min'] = $request->price_from;
             }
-            if ($request->filled('price_to')) {
+            if ($request->input('price_to') !== null && $request->input('price_to') !== '') {
                 $between['max'] = $request->price_to;
             }
             $filters['price'] = ['type' => 'between', 'column' => 'price', ...$between];
@@ -63,6 +64,7 @@ class ProductFilterDTO
         return new self(
             filters: $filters,
             sort: $sort,
+            queryString: $request->query(),
         );
     }
 }

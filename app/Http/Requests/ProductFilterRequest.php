@@ -17,7 +17,7 @@ class ProductFilterRequest extends FormRequest
         return [
             'q' => ['nullable', 'string', 'max:255'],
             'price_from' => ['nullable', 'numeric', 'min:0'],
-            'price_to' => ['nullable', 'numeric', 'min:0', 'gte:price_from'],
+            'price_to' => ['nullable', 'numeric', 'min:0'],
             'category_id' => ['nullable', 'integer'],
             'in_stock' => ['nullable', 'boolean'],
             'rating_from' => ['nullable', 'numeric', 'min:0', 'max:5'],
