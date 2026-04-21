@@ -18,6 +18,7 @@ trait Filterable
                     'between' => $this->applyBetweenFilter($query, $column, $value),
                     'in' => $this->applyInFilter($query, $column, $value['values'] ?? []),
                     'like' => $this->applyLikeFilter($query, $column, $value['value'] ?? ''),
+                    'boolean' => $this->applyBooleanFilter($query, $column, $value['value'] ?? $value),
                     default => $query->where($field, $value['value'] ?? $value),
                 };
             } elseif (is_array($value)) {
@@ -71,6 +72,11 @@ trait Filterable
         }
 
         return $query->where($column, 'LIKE', "%{$value}%");
+    }
+
+    protected function applyBooleanFilter(Builder $query, string $column, mixed $value): Builder
+    {
+        return $query->where($column, (bool) $value);
     }
 
     protected function filterMethodName(string $method): string
